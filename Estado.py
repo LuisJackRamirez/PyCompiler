@@ -5,12 +5,12 @@ class Estado:
     edoFinal = bool
     token = int
 
-    def __init__ (self, identif, transic, edoI, edoF, tok):
-        self.identificador = identif
-        self.transiciones = transic
-        self.edoInicial = edoI
-        self.edoFinal = edoF
-        self.token = tok
+    def __init__ (self, identificador, transiciones, edoInicial, edoFinal, token):
+        self.identificador = identificador
+        self.transiciones = transiciones
+        self.edoInicial = edoInicial
+        self.edoFinal = edoFinal
+        self.token = token
 
     def addTransicion (self, T):
         self.transiciones.add (T)
