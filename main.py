@@ -107,10 +107,10 @@ def Concatenar(id1, id2, conjunto, numCrear):
         elif i.idAFN == id2:
             af2 = i
 
-    #newId = af2.S.identificador             #Obtener la id del estado inicial
-                                             #del autómata 2
+    #newId = af2.S.identificador            #Obtener la id del estado inicial
+                                            #del autómata 2
 
-    aux=[]
+    aux=[]                                  #Para ver qué estados deberemos de quitar
 
     for i in af1.edosAFN:                           #Por cada estado del autómata 1,
         for j in i.transiciones:                    #por cada transición del estado,
@@ -125,6 +125,9 @@ def Concatenar(id1, id2, conjunto, numCrear):
     af1.edosAFN.update (af2.edosAFN)
     af1.F = af2.F
     conjunto.con.remove (af2)
+
+    af1.E = af1.E + af2.E
+    af1.E = "".join (set (af1.E))
 
 def Crear(symbol, conjunto, numCrear):
     global numAFNCreados
