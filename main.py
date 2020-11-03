@@ -98,7 +98,7 @@ def Tabla1(conjunto, numCrear):
 
     '''Función que realiza la operación unión con dos AFNs
             Recibe los ids de los AFN, el conjunto de AFN, y el contador de AFN creados'''
-def Concatenar(id1, id2, conjunto, numCrear):
+def Concatenar(id1, id2, conjunto):
     af1 = AFN
     af2 = AFN
     for i in conjunto.con:                  #Buscar y obtener los
@@ -119,13 +119,17 @@ def Concatenar(id1, id2, conjunto, numCrear):
                 af1.F.remove (j.edoDestino)         #lo eliminamos de la lista y lo reemplazamos
                 j.edoDestino = af2.S                #por la id inicial del AFN2
 
+    '''Eliminamos los estados finales de AF1 de su conjunto de estados'''
     for i in aux:
         af1.edosAFN.remove (i)
 
+    '''Juntamos el set de estados de AF2 con el de AF1,
+    y eliminamos AF2 de la lista de AFN'''
     af1.edosAFN.update (af2.edosAFN)
     af1.F = af2.F
     conjunto.con.remove (af2)
 
+    '''Aquí unimos los dos alfabetos y eliminamos los caracteres repetidos'''
     af1.E = af1.E + af2.E
     af1.E = "".join (set (af1.E))
 
@@ -322,12 +326,15 @@ while True:
         id1 = int(input(""))
         print("\nIngresa el id del segundo AFN a concatenar:")
         id2 = int(input(""))
-        Concatenar (id1, id2, conjunto, numCrear)
+        Concatenar (id1, id2, conjunto)
         print("¡Nuevo AFN creado con éxito!\n")
 
     elif opcionMenu == "5":
         print("\nIngresa el id del AFN al cual obtener la cerradura transitiva:")
+        id1 = int(input(""))
+        CerrTransitiva (id1, conjunto)
         print("¡Nuevo AFN creado con éxito!\n")
+
     elif opcionMenu == "6":
         print("\nIngresa el id del AFN al cual obtener la cerradura de kleene:")
         print("¡Nuevo AFN creado con éxito!\n")
