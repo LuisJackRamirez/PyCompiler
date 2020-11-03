@@ -96,19 +96,55 @@ def Tabla1(conjunto, numCrear):
         conjunto.con = nuevaLista
         print(tabulate(tabla, headers='firstrow', stralign='center', tablefmt='fancy_grid'))
 
+    '''Función que realiza la operación unión con dos AFNs
+            Recibe los ids de los AFN, el conjunto de AFN, y el contador de AFN creados'''
+def Concatenar(id1, id2, conjunto, numCrear):
+    af1 = AFN
+    af2 = AFN
+    for i in conjunto.con:                  #Buscar y obtener los
+        if i.idAFN == id1:                  #AFN solicitados
+            af1 = i
+        elif i.idAFN == id2:
+            af2 = i
+
+    #newId = af2.S.identificador             #Obtener la id del estado inicial
+                                             #del autómata 2
+
+    aux=[]
+
+    for i in af1.edosAFN:                           #Por cada estado del autómata 1,
+        for j in i.transiciones:                    #por cada transición del estado,
+            if j.edoDestino in af1.F:               #si encontramos un estado final
+                aux.append (j.edoDestino)          
+                af1.F.remove (j.edoDestino)         #lo eliminamos de la lista y lo reemplazamos
+                j.edoDestino = af2.S                #por la id inicial del AFN2
+
+    for i in aux:
+        af1.edosAFN.remove (i)
+
+    af1.edosAFN.update (af2.edosAFN)
+    af1.F = af2.F
+    conjunto.con.remove (af2)
+
 def Crear(symbol, conjunto, numCrear):
-    x = Estado(0, set(), True, False, 10)
-    x1 = Estado(1, set(), False, True, 20)
+    global numAFNCreados
+
+    x = Estado(numCrear, set(), True, False, 10)
+    x1 = Estado(numCrear + 1, set(), False, True, 20)
+
+    '''Se añade la transicion del estado x al estado x1 con el símbolo symbol'''
+    y = Transicion (symbol, x1)
+    x.addTransicion (y)
 
     ''' Revisar si "conjunto" tiene estados o no '''
     if len(conjunto.con) >= 1:
         ''' "conjunto" tiene estados, por tanto se añade al final el nuevo AFN '''
-        conjunto.con.insert(numCrear + 1, AFN(x, symbol, {x, x1}, {x1}, 1 + numCrear))
+        conjunto.con.insert(numCrear + 1, AFN(x, symbol, {x, x1}, {x1}, numAFNCreados))
     else:
         ''' "conjunto" no tiene estados, por tanto se añade al principio '''
-        conjunto.con = [AFN(x, symbol, {x, x1}, {x1}, 1 + numCrear)]
+        conjunto.con = [AFN(x, symbol, {x, x1}, {x1}, numAFNCreados)]
 
-    numCrear += 1
+    numCrear += 2
     print("creando AFN...")
     time.sleep(1)
     print("¡AFN creado con éxito!\n")
@@ -253,6 +289,7 @@ totalEstados = [x, x1]
 
 cerraduraEpsilon (x)'''
 
+numAFNCreados = 1
 conjunto = conjuntoAFN
 numCrear = 0
 print("\n¡Hola!, Bienvenido al programa de análisis léxico")
@@ -268,6 +305,7 @@ while True:
         print("\nPara crear el AFN, escribe el carácter al cual crearle el AFN:")
         symbol = str(input(""))[0]
         numCrear = Crear(symbol, conjunto, numCrear)
+        numAFNCreados += 1
 
     elif opcionMenu == "3":
         print("\nIngresa el id del primer AFN a unir:")
@@ -278,7 +316,12 @@ while True:
 
     elif opcionMenu == "4":
         print("\nIngresa el id del primer AFN a concatenar:")
+        id1 = int(input(""))
+        print("\nIngresa el id del segundo AFN a concatenar:")
+        id2 = int(input(""))
+        Concatenar (id1, id2, conjunto, numCrear)
         print("¡Nuevo AFN creado con éxito!\n")
+
     elif opcionMenu == "5":
         print("\nIngresa el id del AFN al cual obtener la cerradura transitiva:")
         print("¡Nuevo AFN creado con éxito!\n")
