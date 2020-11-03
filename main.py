@@ -16,9 +16,9 @@ def menu():
     print("\t2 - Crear AFN")
     print("\t3 - Unir 2 AFN")
     print("\t4 - Concatenar 2 AFN")
-    print("\t5 - Cerradura transitiva de un AFN")
-    print("\t6 - Cerradura de kleene de un AFN")
-    print("\t7 - operación opcional de un AFN")
+    print("\t5 - Cerradura transitiva de un AFN")           #A+
+    print("\t6 - Cerradura de kleene de un AFN")            #A*
+    print("\t7 - operación opcional de un AFN")             #A?
     print("\t8 - Unión 2 o más AFN para el análisis léxico")
     print("\t9 - Convertir un AFN a un AFD")
     print("\t10 - Hacer una prueba con una cadena en un AF")
@@ -96,6 +96,43 @@ def Tabla1(conjunto, numCrear):
         conjunto.con = nuevaLista
         print(tabulate(tabla, headers='firstrow', stralign='center', tablefmt='fancy_grid'))
 
+    '''Función que transforma el AFN a la operación Cerradura Transitiva'''
+def CerrTransitiva (id1, conjunto):
+    af1 = AFN
+    for i in conjunto.con:                  #Buscar y obtener los
+        if i.idAFN == id1:                  #AFN solicitados
+            af1 = i
+            break
+
+    global numCrear
+
+    #Creación de los estados requeridos para la cerradura Transitiva
+    x = Estado(numCrear, set(), True, False, 10)
+    x1 = Estado(numCrear + 1, set(), False, True, 20)
+
+    numCrear += 2
+
+    #Creada la transición epsilon para x
+    y = Transicion ("\u03C3", af1.S)
+    x.addTransicion (y)
+
+    #Añadir la transición épsilon hacia x1 a los estados
+    #finales, y de regreso al estado inicial
+    for i in af1.F:
+        i.addTransicion (y)
+        i.addTransicion (Transicion ("\u03C3", x1))
+        i.edoFinal = False
+
+    #Finalmente, adición de los nuevos estados al AFN,
+    #y modificación del estado inicial y final
+    af1.F = {x1}
+    af1.edosAFN.add (x)
+    af1.edosAFN.add (x1)
+    af1.S = x
+
+    return af1
+
+
     '''Función que realiza la operación unión con dos AFNs
             Recibe los ids de los AFN, el conjunto de AFN, y el contador de AFN creados'''
 def Concatenar(id1, id2, conjunto):
@@ -106,9 +143,6 @@ def Concatenar(id1, id2, conjunto):
             af1 = i
         elif i.idAFN == id2:
             af2 = i
-
-    #newId = af2.S.identificador            #Obtener la id del estado inicial
-                                            #del autómata 2
 
     aux=[]                                  #Para ver qué estados deberemos de quitar
 
