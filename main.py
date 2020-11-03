@@ -96,6 +96,12 @@ def Tabla1(conjunto, numCrear):
         conjunto.con = nuevaLista
         print(tabulate(tabla, headers='firstrow', stralign='center', tablefmt='fancy_grid'))
 
+    '''Función que transforma el AFN a la operación Cerradura de Kleene'''
+def CerrKleene (id1, conjunto):
+    af1 = CerrTransitiva (id1, conjunto)
+    for i in af1.F:
+        af1.S.addTransicion (Transicion ("\u03C3", i))
+
     '''Función que transforma el AFN a la operación Cerradura Transitiva'''
 def CerrTransitiva (id1, conjunto):
     af1 = AFN
@@ -371,7 +377,10 @@ while True:
 
     elif opcionMenu == "6":
         print("\nIngresa el id del AFN al cual obtener la cerradura de kleene:")
+        id1 = int(input(""))
+        CerrKleene (id1, conjunto)
         print("¡Nuevo AFN creado con éxito!\n")
+
     elif opcionMenu == "7":
         print("\nIngresa el id del AFN al cual obtener la operación opcional:")
         print("¡Nuevo AFN creado con éxito!\n")
