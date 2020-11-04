@@ -33,9 +33,9 @@ def TablaGeneral(conjunto, numCrear):
         ''' Como no hay AFN, creamos primero variables de apoyo '''
         tabla = [['Id', 'Alfabeto', 'Estados', 'Estado inicial', 'Estados Finales', 'Expresión regular']]
         aux2 = copy.deepcopy(conjunto.con)
-
         aux2.reverse()
 
+        contador = 1
         ''' Ciclo para extraer cada AFN para mostrarlo en la tabla '''
         while (len(aux2) >= 1):
             aux = aux2.pop()
@@ -78,7 +78,8 @@ def TablaGeneral(conjunto, numCrear):
 
             ''' Imprimiendo tabla '''
             afs = [str(aux.idAFN), repr(aux.E), todos, Sfinal, edosFinales, str(aux.ER)]
-            tabla.append(afs)
+            tabla.insert(contador, afs)
+            contador += 1
 
         print(tabulate(tabla, headers='firstrow', stralign='center', tablefmt='fancy_grid'))
 
@@ -88,8 +89,6 @@ def TablaAFN(id, conjunto, numCrear):
         print("\nNo hay AF's por mostrar")
     else:
         ''' Como no hay AFN, creamos primero variables de apoyo '''
-        contador = 1
-        arreglo = []
         tabla = [['Id del Estado', 'Transiciones (símbolo,edoDestino)', '¿Es estado inicial?', '¿Es estado Final?', 'Token']]
         aux3 = copy.deepcopy(conjunto.con)
 
@@ -98,8 +97,17 @@ def TablaAFN(id, conjunto, numCrear):
             if aux.idAFN == id:
                 afn = aux
 
-        afn.edosAFN.reverse()
+        #afn.edosAFN.reverse()
 
+        xd = []
+        contador = 1
+        while(len(afn.edosAFN) >= 1):
+            aux = afn.edosAFN.pop()
+            xd.insert(contador, aux)
+            contador += 1
+        afn.edosAFN = xd
+
+        contador2 = 1
         while(len(afn.edosAFN) >= 1):
             edo = afn.edosAFN.pop()
 
@@ -113,28 +121,47 @@ def TablaAFN(id, conjunto, numCrear):
                 var2 = "Falso"
 
             ''' Imprimiendo tabla '''
-            if edo.transiciones[0] == '(':
-                afs = [str(edo.identificador), edo.transiciones, var1, var2, edo.token]
-            elif edo.transiciones[0] == ' ':
-                afs = [str(edo.identificador), "Epsilon", var1, var2, edo.token]
-            else:
+            try:
+                aux = edo.transiciones
                 cad = ""
-                while(len(edo.transiciones) >= 1):
-                    aux = edo.transiciones.pop()
-                    for i in range(0, len(aux)):
-                        cad += aux[i]
-                    if(len(edo.transiciones) >= 1):
+                contador = 1
+                while(len(aux) >= 1):
+                    if contador != 1:
                         cad += ","
+                    aux2 = aux.pop()
+                    if aux2.simbolo == None:
+                        afs = [str(edo.identificador), "No hay transiciones", var1, var2, edo.token]
+                    else:
+                        if aux2.simbolo == " ":
+                            cad2 = "Epsilon"
+                        else:
+                            cad2 = str(aux2.simbolo)
+                        aux3 = aux2.edoDestino
+                        cad += "(" + cad2 + "," + str(aux3.identificador) + ")"
+                    contador += 1
                 afs = [str(edo.identificador), cad, var1, var2, edo.token]
+            except:
+                aux = edo.transiciones
+                if aux == None:
+                    afs = [str(edo.identificador), "No hay transiciones", var1, var2, edo.token]
+                else:
+                    if aux.simbolo == " ":
+                        cad2 = "Epsilon"
+                    else:
+                        cad2 = str(aux.simbolo)
+                    aux2 = aux.edoDestino
+                    cad = "(" + cad2 + "," + str(aux2.identificador) + ")"
+                    afs = [str(edo.identificador), cad, var1, var2, edo.token]
 
-            tabla.append(afs)
+            tabla.insert(contador2, afs)
+            contador2 += 1
 
         print(tabulate(tabla, headers='firstrow', stralign='center', tablefmt='fancy_grid'))
 
 def Crear(symbol, conjunto, conteoDeEdos, numCrear):
-    transicion1 = "(" + symbol + "," + str(conteoDeEdos+1) + ")"
+    x1 = Estado(conteoDeEdos+1, None, False, True, (numCrear+1)*10)
+    transicion1 = Transicion(symbol, x1)
     x = Estado(conteoDeEdos, transicion1, True, False, 0)
-    x1 = Estado(conteoDeEdos+1, " ", False, True, (numCrear+1)*10)
 
     ''' Revisar si "conjunto" tiene estados o no '''
     if len(conjunto.con) >= 1:
@@ -143,7 +170,6 @@ def Crear(symbol, conjunto, conteoDeEdos, numCrear):
     else:
         ''' "conjunto" no tiene estados, por tanto se añade al principio '''
         conjunto.con = [AFN(x, symbol, {x, x1}, {x1}, 1 + numCrear, symbol)]
-
     print("creando AFN...")
     time.sleep(1)
     print("¡AFN creado con éxito!\n")
@@ -158,34 +184,51 @@ def Unir(id1, id2, conjunto):
         aux = conjunto.con.pop()
         if aux.idAFN == id1:
             af1 = aux
-            aux4 = copy.deepcopy(aux.S)
-            idx1 = aux4.identificador
             tam = len(aux.edosAFN)
         elif aux.idAFN == id2:
             af2 = aux
-            aux4 = copy.deepcopy(aux.S)
-            idx2 = aux4.identificador
             tam2 = len(aux.edosAFN)
         else:
             aux2.insert(contador, aux)
             contador += 1
 
     contador = 1
+    contador2 = 1
 
-    if idx1 <= idx2:
-        id3 = idx1
-        id4 = idx2
-    else:
-        id3 = idx2
-        id4 = idx1
+    ''' Regresando los AFN que no se ocuparon a "conjunto.con" '''
+    while (len(aux2) >= 1):
+        aux = aux2.pop()
+        aux.idAFN = contador
+        aux4 = []
+        aux5 = []
+        contador3 = 1
+        while (len(aux.edosAFN) >= 1):
+            aux3 = aux.edosAFN.pop()
+            aux4.insert(contador3, aux3)
+            contador3 += 1
+        contador3 = 1
+        while (len(aux4) >= 1):
+            aux3 = aux4.pop()
+            aux3.identificador = contador2 - 1
+            aux5.insert(contador3, aux3)
+            contador2 += 1
+            contador3 += 1
+        aux.edosAFN = aux5
+        conjunto.con.insert(contador - 1, aux)
+        contador += 1
 
+    contador3 = 1
     ''' Añadiendo el estado inicial "x" de la operación unión '''
-    transicion1 = ["( ," + str(id3+1) + ")", "( ," + str(id4+1) + ")"]
-    x = Estado(id3, transicion1, True, False, 0)
+    transicion1 = [Transicion(" ", af1.S), Transicion(" ", af2.S)]
+    x = Estado(contador2-1, transicion1, True, False, 0)
     ''' Creando AFN "noms" que será la unión de af1 y af2, con estado inicial "x" '''
     noms = []
-    noms.insert(contador - 1, x)
-    contador += 1
+    noms.insert(contador3 - 1, x)
+    contador3 += 1
+    contador2 += 1
+
+    ''' Añadiendo el estado final al AFN "noms" '''
+    x1 = Estado(tam + tam2 + contador2 - 1, None, False, True, (numCrear - 1) * 10)
 
     afx = []
     afx.insert(0,af1)
@@ -196,50 +239,26 @@ def Unir(id1, id2, conjunto):
         while (len(af.edosAFN) >= 1):
             val = af.edosAFN.pop()
             if val.edoFinal == False:
-                val.identificador = val.identificador + 1
+                val.identificador = contador2 - 1
                 val.edoFinal = False
                 val.edoInicial = False
-                if val.transiciones[0] == '(':
-                    cad = ""
-                    for i in range(0, len(val.transiciones)):
-                        if val.transiciones[i] == ",":
-                            j = 1
-                            while (val.transiciones[i + j] != ")"):
-                                cad += val.transiciones[i + j]
-                                j += 1
-                    val.transiciones = "(" + val.transiciones[1] + "," + str(int(cad) + 1) + ")"
-                else:
-                    aux3 = []
-                    contador2 = 1
-                    while (len(val.transiciones) >= 1):
-                        aux = val.transiciones.pop()
-                        cad2 = ""
-                        for i in range(0, len(aux)):
-                            if aux[i] == ",":
-                                j = 1
-                                while (aux[i + j] != ")"):
-                                    cad2 += aux[i + j]
-                                    j += 1
-                        cad = "(" + aux[1] + "," + str(int(cad2) + 1) + ")"
-                        aux3.insert(contador2, cad)
-                        contador2 += 1
-                    val.transiciones = aux3
                 val.token = 0
-                noms.insert(contador, val)
-                contador += 1
+                noms.insert(contador3, val)
+                contador3 += 1
+                contador2 += 1
             else:
-                val.identificador = val.identificador + 1
+                val.identificador = contador2 - 1
                 val.edoFinal = False
                 val.edoInicial = False
                 val.token = 0
-                val.transiciones = "( ," + str(tam + tam2 + 1 + id3) + ")"
-                noms.insert(contador, val)
-                contador += 1
+                transicion1 = Transicion(" ", x1)
+                val.transiciones = transicion1
 
-    ''' Añadiendo el estado final al AFN "noms" '''
-    x1 = Estado(tam+tam2+1+id3, " ", False, True, (numCrear-1)*10)
-    noms.insert(contador, x1)
-    contador = 1
+                noms.insert(contador3, val)
+                contador3 += 1
+                contador2 += 1
+
+    noms.insert(contador3, x1)
 
     ''' Definiendo el alfabeto de noms, juntando el de af1 y af2 
         el ciclo for es para revisar que las letras del alfabeto 
@@ -264,13 +283,6 @@ def Unir(id1, id2, conjunto):
     else:
         er = "(" + af1.ER + ")" + " | " + "(" + af2.ER + ")"
 
-    ''' Regresando los AFN que no se ocuparon a "conjunto.con" '''
-    while (len(aux2) >= 1):
-        aux = aux2.pop()
-        aux.idAFN = contador
-        conjunto.con.insert(contador - 1, aux)
-        contador += 1
-
     ''' Añadiendo el nuevo AFN a "conjunto.con" '''
     conjunto.con.insert(contador - 1, AFN(x, symbol, noms, x1, contador, er))
 
@@ -278,7 +290,7 @@ def CerrKleene (id1, conjunto):
     '''Función que transforma el AFN a la operación Cerradura de Kleene'''
     af1 = CerrTransitiva (id1, conjunto)
     for i in af1.F:
-        af1.S.addTransicion (Transicion ("", i))
+        af1.S.addTransicion (Transicion (" ", i))
 
 def CerrTransitiva (id1, conjunto):
     '''Función que transforma el AFN a la operación Cerradura Transitiva'''
@@ -296,8 +308,8 @@ def CerrTransitiva (id1, conjunto):
 
     numCrear += 2
 
-    #Creada la transición épsilon para x
-    y = Transicion ("", af1.S)
+    # Creada la transición épsilon para x
+    y = Transicion(" ", af1.S)
     x.addTransicion (y)
 
     #Añadir la transición épsilon hacia x1 a los estados
@@ -390,13 +402,16 @@ def prepararAnalisis(conjunto):
     else:
         contador = 1
         transicion1 = []
-        aux = copy.deepcopy(conjunto.con)
+
         ''' Añadiendo el estado inicial "x" de la operación unión '''
-        while(len(aux) >= 1):
-            aux2 = aux.pop()
-            while(len(aux2.edosAFN) >= 1):
-                aux3 = aux2.edosAFN.pop()
-                transicion1 += ["( ," + str(aux3.identificador+ 1) + ")"]
+        final2 = copy.deepcopy(conjunto.con)
+        while (len(final2) >= 1):
+            af1 = final2.pop()
+            while (len(af1.edosAFN) >= 1):
+                val = af1.edosAFN.pop()
+                val.identificador = val.identificador + 1
+                if val.edoInicial == True:
+                    transicion1 += [Transicion(" ", val)]
 
         x = Estado(0, transicion1, True, False, 0)
         ''' Creando AFN "noms" que será la unión de af1 y af2, con estado inicial "x" '''
@@ -431,36 +446,9 @@ def prepararAnalisis(conjunto):
                 val.identificador = val.identificador + 1
                 if val.edoFinal == False:
                     val.edoInicial = False
-                    if val.transiciones[0] == '(':
-                        cad = ""
-                        for i in range(0, len(val.transiciones)):
-                            if val.transiciones[i] == ",":
-                                j = 1
-                                while (val.transiciones[i + j] != ")"):
-                                    cad += val.transiciones[i + j]
-                                    j += 1
-                        val.transiciones = "(" + val.transiciones[1] + "," + str(int(cad) + 1) + ")"
-                    else:
-                        aux3 = []
-                        contador2 = 1
-                        while (len(val.transiciones) >= 1):
-                            aux = val.transiciones.pop()
-                            cad2 = ""
-                            for i in range(0, len(aux)):
-                                if aux[i] == ",":
-                                    j = 1
-                                    while (aux[i + j] != ")"):
-                                        cad2 += aux[i + j]
-                                        j += 1
-                            cad = "(" + aux[1] + "," + str(int(cad2) + 1) + ")"
-                            aux3.insert(contador2, cad)
-                            contador2 += 1
-                        val.transiciones = aux3
-                    val.token = 0
                 else:
                     auxFinal.insert(contador3, val)
                     contador3 += 1
-
                 noms.insert(contador, val)
                 contador += 1
 
@@ -546,17 +534,17 @@ while True:
         resp = str(input(""))[0]
         if resp == "S" or resp == "s":
             prepararAnalisis(conjunto)
+            numAFNCreados = 2
+            conteoDeEdos += 1
+            numCrear = 1
         else:
             time.sleep(1)
-
     elif opcionMenu == "10":
         print("\nIngresa el id del AFN a convertir a un AFD:")
         print("¡Nuevo AFD creado con éxito!\n")
-
     elif opcionMenu == "11":
         print("\nIngresa el id del AF a introducir una cadena:")
         print("¡Prueba concluida con éxito!\n")
-
     elif opcionMenu == "12":
         break
     else:
