@@ -289,24 +289,30 @@ def Unir(id1, id2, conjunto):
 def CerrKleene (id1, conjunto):
     '''Función que transforma el AFN a la operación Cerradura de Kleene'''
     af1 = CerrTransitiva (id1, conjunto)
+    if af1 == -1:
+        return -1
+
     for i in af1.F:
         af1.S.addTransicion (Transicion (" ", i))
 
 def CerrTransitiva (id1, conjunto):
     '''Función que transforma el AFN a la operación Cerradura Transitiva'''
-    af1 = AFN
+    af1 = None
     for i in conjunto.con:                  #Buscar y obtener los
         if i.idAFN == id1:                  #AFN solicitados
             af1 = i
             break
 
-    global numCrear
+    if af1 == None:
+        return -1
+
+    global conteoDeEdos
 
     #Creación de los estados requeridos para la cerradura Transitiva
-    x = Estado(numCrear, set(), True, False, 10)
-    x1 = Estado(numCrear + 1, set(), False, True, 20)
+    x = Estado(conteoDeEdos, set(), True, False, 10)
+    x1 = Estado(conteoDeEdos + 1, set(), False, True, 20)
 
-    numCrear += 2
+    conteoDeEdos += 2
 
     # Creada la transición épsilon para x
     y = Transicion(" ", af1.S)
@@ -315,8 +321,12 @@ def CerrTransitiva (id1, conjunto):
     #Añadir la transición épsilon hacia x1 a los estados
     #finales, y de regreso al estado inicial
     for i in af1.F:
-        i.addTransicion (y)
-        i.addTransicion (Transicion ("", x1))
+        if i.transiciones == None:
+            i.transiciones = {y}
+        else:
+            i.addTransicion (y)
+
+        i.addTransicion (Transicion (" ", x1))
         i.edoFinal = False
 
     #Finalmente, adición de los nuevos estados al AFN,
@@ -331,22 +341,25 @@ def CerrTransitiva (id1, conjunto):
 def Concatenar(id1, id2, conjunto):
     '''Función que realiza la operación concatenar con dos AFNs
        Recibe los ids de los AFN, el conjunto de AFN, y el contador de AFN creados'''
-    af1 = AFN
-    af2 = AFN
+    af1 = -1
+    af2 = -1
     for i in conjunto.con:                  #Buscar y obtener los
         if i.idAFN == id1:                  #AFN solicitados
             af1 = i
         elif i.idAFN == id2:
             af2 = i
 
+    if af1 == -1 or af2 == -1:
+        return -1
+
     aux=[]                                  #Para ver qué estados deberemos de quitar
 
     for i in af1.edosAFN:                           #Por cada estado del autómata 1,
-        for j in i.transiciones:                    #por cada transición del estado,
-            if j.edoDestino in af1.F:               #si encontramos un estado final
-                aux.append (j.edoDestino)
-                af1.F.remove (j.edoDestino)         #lo eliminamos de la lista y lo reemplazamos
-                j.edoDestino = af2.S                #por la id inicial del AFN2
+            for j in i.transiciones:                    #por cada transición del estado,
+                if j.edoDestino in af1.F:               #si encontramos un estado final
+                    aux.append (j.edoDestino)
+                    af1.F.remove (j.edoDestino)         #lo eliminamos de la lista y lo reemplazamos
+                    j.edoDestino = af2.S                #por la id inicial del AFN2
 
     '''Eliminamos los estados finales de AF1 de su conjunto de estados'''
     for i in aux:
@@ -364,28 +377,35 @@ def Concatenar(id1, id2, conjunto):
 
 def Opcional (id1, conjunto):
     '''Función que transforma el AFN a la operación Opcional'''
-    af1 = AFN
+    af1 = None
     for i in conjunto.con:                  #Buscar y obtener los
         if i.idAFN == id1:                  #AFN solicitados
             af1 = i
             break
 
-    global numCrear
+    if af1 == None:
+        return -1
+
+    global conteoDeEdos
 
     #Creación de los estados requeridos para la cerradura Transitiva
-    x = Estado(numCrear, set(), True, False, 10)
-    x1 = Estado(numCrear + 1, set(), False, True, 20)
+    x = Estado(conteoDeEdos, set(), True, False, 10)
+    x1 = Estado(conteoDeEdos + 1, set(), False, True, 20)
 
-    numCrear += 2
+    conteoDeEdos += 2
 
     #Creada la transición epsilon para x
-    x.addTransicion (Transicion ("", af1.S))
-    x.addTransicion (Transicion ("", x1))
+    x.addTransicion (Transicion (" ", af1.S))
+    x.addTransicion (Transicion (" ", x1))
+    y = Transicion (" ", x1)
 
     #Añadir la transición épsilon hacia x1 a los estados
     #finales, y de regreso al estado inicial
     for i in af1.F:
-        i.addTransicion (Transicion ("", x1))
+        if i.transiciones == None:
+            i.transiciones = {y}
+        else:
+            i.addTransicion (y)
         i.edoFinal = False
 
     #Finalmente, adición de los nuevos estados al AFN,
@@ -508,26 +528,42 @@ while True:
         id1 = int(input(""))
         print("\nIngresa el id del segundo AFN a concatenar:")
         id2 = int(input(""))
-        Concatenar(id1, id2, conjunto)
-        print("¡Nuevo AFN creado con éxito!\n")
+        a = Concatenar(id1, id2, conjunto)
+
+        if a == -1:
+            print("No se encontró la ID de algún autómata\n")
+        else:
+            print("¡Nuevo AFN creado con éxito!\n")
 
     elif opcionMenu == "6":
         print("\nIngresa el id del AFN al cual obtener la cerradura transitiva:")
         id1 = int(input(""))
-        CerrTransitiva(id1, conjunto)
-        print("¡Nuevo AFN creado con éxito!\n")
+        a = CerrTransitiva(id1, conjunto)
+
+        if a == -1:
+            print("No se encontró el AFN\n")
+        else:
+            print("¡Nuevo AFN creado con éxito!\n")
 
     elif opcionMenu == "7":
         print("\nIngresa el id del AFN al cual obtener la cerradura de kleene:")
         id1 = int(input(""))
-        CerrKleene(id1, conjunto)
-        print("¡Nuevo AFN creado con éxito!\n")
+        a = CerrKleene(id1, conjunto)
+        
+        if a == -1:
+            print("No se encontró el AFN\n")
+        else:
+            print("¡Nuevo AFN creado con éxito!\n")
 
     elif opcionMenu == "8":
         print("\nIngresa el id del AFN al cual obtener la operación opcional:")
         id1 = int(input(""))
-        Opcional(id1, conjunto)
-        print("¡Nuevo AFN creado con éxito!\n")
+        a = Opcional(id1, conjunto)
+
+        if a == -1:
+            print("No se encontró el AFN\n")
+        else:
+            print("¡Nuevo AFN creado con éxito!\n")
 
     elif opcionMenu == "9":
         print("\nTodos los AFN del sistema se van a unir, ¿Deseas continuar? (S/N)")
