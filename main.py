@@ -33,22 +33,12 @@ def TablaGeneral(conjunto, numCrear):
         ''' Como no hay AFN, creamos primero variables de apoyo '''
         tabla = [['Id', 'Alfabeto', 'Estados', 'Estado inicial', 'Estados Finales', 'Expresión regular']]
         aux2 = copy.deepcopy(conjunto.con)
-        aux2.reverse()
 
         contador = 1
         ''' Ciclo para extraer cada AFN para mostrarlo en la tabla '''
-        while (len(aux2) >= 1):
-            aux = aux2.pop()
+        for i in aux2:
             ''' extraer id del estado inicial para la tabla '''
-            Sfinal = str(aux.S.identificador)
-            ''' variables de apoyo
-            
-                aux3 = se guardan aquí los estados sacados
-                todos = mostrar todos los estados existentes en la tabla
-                edosFinales = mostrar estados finales en la tabla
-                numTodos = saber cuántos estados hay y ordenarlos de forma ascendente (1, 2, ...)
-                numFinales = saber donde se encuentran los estados finales '''
-            aux3 = copy.deepcopy(aux)
+            Sfinal = str(i.S.identificador)
             todos = ""
             edosFinales = ""
             numTodos = []
@@ -56,28 +46,27 @@ def TablaGeneral(conjunto, numCrear):
 
             ''' Ciclo para saber cuales estados del AFN son finales,
                 así como para saber cuántos hay '''
-            while (len(aux3.edosAFN) >= 1):
-                finales = aux3.edosAFN.pop()
-                numTodos.append(finales.identificador)
-                if finales.edoFinal == True:
-                    numFinales.append(finales.identificador)
+            for j in i.edosAFN:
+                numTodos.append(j.identificador)
+                if j.edoFinal == True:
+                    numFinales.append(j.identificador)
 
             ''' Regresando estados al AFN "aux", así como ordenar los id's para la tabla '''
             numTodos = sorted(numTodos)
             numFinales = sorted(numFinales)
 
             ''' obteniendo los id's de todos los estados '''
-            for i in range(0, len(numTodos) - 1):
-                todos += str(numTodos[i]) + ", "
+            for j in range(0, len(numTodos) - 1):
+                todos += str(numTodos[j]) + ", "
             todos += str(numTodos[len(numTodos) - 1])
 
             ''' obteniendo los id's de todos los estados finales '''
-            for i in range(0, len(numFinales) - 1):
-                edosFinales += str(numFinales[i]) + ", "
+            for j in range(0, len(numFinales) - 1):
+                edosFinales += str(numFinales[j]) + ", "
             edosFinales += str(numFinales[len(numFinales) - 1])
 
             ''' Imprimiendo tabla '''
-            afs = [str(aux.idAFN), repr(aux.E), todos, Sfinal, edosFinales, str(aux.ER)]
+            afs = [str(i.idAFN), repr(i.E), todos, Sfinal, edosFinales, str(i.ER)]
             tabla.insert(contador, afs)
             contador += 1
 
@@ -92,58 +81,44 @@ def TablaAFN(id, conjunto, numCrear):
         tabla = [['Id del Estado', 'Transiciones (símbolo,edoDestino)', '¿Es estado inicial?', '¿Es estado Final?', 'Token']]
         aux3 = copy.deepcopy(conjunto.con)
 
-        while(len(aux3) >= 1):
-            aux = aux3.pop()
-            if aux.idAFN == id:
-                afn = aux
-
-        #afn.edosAFN.reverse()
-
-        xd = []
-        contador = 1
-        while(len(afn.edosAFN) >= 1):
-            aux = afn.edosAFN.pop()
-            xd.insert(contador, aux)
-            contador += 1
-        afn.edosAFN = xd
+        for i in aux3:
+            if i.idAFN == id:
+                afn = i
 
         contador2 = 1
-        while(len(afn.edosAFN) >= 1):
-            edo = afn.edosAFN.pop()
 
-            if edo.edoInicial == True:
+        for i in afn.edosAFN:
+            if i.edoInicial == True:
                 var1 = "Verdadero"
             else:
                 var1 = "Falso"
-            if edo.edoFinal == True:
+            if i.edoFinal == True:
                 var2 = "Verdadero"
             else:
                 var2 = "Falso"
 
             ''' Imprimiendo tabla '''
             try:
-                aux = edo.transiciones
                 cad = ""
                 contador = 1
-                while(len(aux) >= 1):
+                for j in i.transiciones:
                     if contador != 1:
                         cad += ","
-                    aux2 = aux.pop()
-                    if aux2.simbolo == None:
-                        afs = [str(edo.identificador), "No hay transiciones", var1, var2, edo.token]
+                    if j.simbolo == None:
+                        afs = [str(i.identificador), "No hay transiciones", var1, var2, i.token]
                     else:
-                        if aux2.simbolo == " ":
+                        if j.simbolo == " ":
                             cad2 = "Epsilon"
                         else:
-                            cad2 = str(aux2.simbolo)
-                        aux3 = aux2.edoDestino
+                            cad2 = str(j.simbolo)
+                        aux3 = j.edoDestino
                         cad += "(" + cad2 + "," + str(aux3.identificador) + ")"
                     contador += 1
-                afs = [str(edo.identificador), cad, var1, var2, edo.token]
+                afs = [str(i.identificador), cad, var1, var2, i.token]
             except:
-                aux = edo.transiciones
+                aux = i.transiciones
                 if aux == None:
-                    afs = [str(edo.identificador), "No hay transiciones", var1, var2, edo.token]
+                    afs = [str(i.identificador), "No hay transiciones", var1, var2, i.token]
                 else:
                     if aux.simbolo == " ":
                         cad2 = "Epsilon"
@@ -151,7 +126,7 @@ def TablaAFN(id, conjunto, numCrear):
                         cad2 = str(aux.simbolo)
                     aux2 = aux.edoDestino
                     cad = "(" + cad2 + "," + str(aux2.identificador) + ")"
-                    afs = [str(edo.identificador), cad, var1, var2, edo.token]
+                    afs = [str(i.identificador), cad, var1, var2, i.token]
 
             tabla.insert(contador2, afs)
             contador2 += 1
@@ -178,45 +153,30 @@ def Unir(id1, id2, conjunto):
     ''' El siguiente ciclo es para vaciar "conjunto.con", sacando cada AFN, para así buscar los 2 AFN a unir,
                 si se encuentran, se almacenan en "af1" y "af2", sino, se van guardando en "aux2" para después volver a
                 guardar en conjunto.con todos los AFN sacados '''
-    aux2 = []
-    contador = 1
-    while (len(conjunto.con) >= 1):
-        aux = conjunto.con.pop()
-        if aux.idAFN == id1:
-            af1 = aux
-            tam = len(aux.edosAFN)
-        elif aux.idAFN == id2:
-            af2 = aux
-            tam2 = len(aux.edosAFN)
-        else:
-            aux2.insert(contador, aux)
-            contador += 1
+
+    for i in conjunto.con:
+        if i.idAFN == id1:
+            af1 = copy.deepcopy(i)
+            r1 = i
+            tam = len(i.edosAFN)
+        elif i.idAFN == id2:
+            af2 = copy.deepcopy(i)
+            r2 = i
+            tam2 = len(i.edosAFN)
+
+    conjunto.con.remove(r1)
+    conjunto.con.remove(r2)
 
     contador = 1
     contador2 = 1
 
-    ''' Regresando los AFN que no se ocuparon a "conjunto.con" '''
-    while (len(aux2) >= 1):
-        aux = aux2.pop()
-        aux.idAFN = contador
-        aux4 = []
-        aux5 = []
-        contador3 = 1
-        while (len(aux.edosAFN) >= 1):
-            aux3 = aux.edosAFN.pop()
-            aux4.insert(contador3, aux3)
-            contador3 += 1
-        contador3 = 1
-        while (len(aux4) >= 1):
-            aux3 = aux4.pop()
-            aux3.identificador = contador2 - 1
-            aux5.insert(contador3, aux3)
+    for i in conjunto.con:
+        i.idAFN = contador
+        for j in i.edosAFN:
+            j.identificador = contador2 - 1
             contador2 += 1
-            contador3 += 1
-        aux.edosAFN = aux5
-        conjunto.con.insert(contador - 1, aux)
         contador += 1
-
+        
     contador3 = 1
     ''' Añadiendo el estado inicial "x" de la operación unión '''
     transicion1 = [Transicion(" ", af1.S), Transicion(" ", af2.S)]
@@ -234,27 +194,24 @@ def Unir(id1, id2, conjunto):
     afx.insert(0,af1)
     afx.insert(1,af2)
 
-    while(len(afx) >= 1):
-        af = afx.pop()
-        while (len(af.edosAFN) >= 1):
-            val = af.edosAFN.pop()
-            if val.edoFinal == False:
-                val.identificador = contador2 - 1
-                val.edoFinal = False
-                val.edoInicial = False
-                val.token = 0
-                noms.insert(contador3, val)
+    for i in afx:
+        for j in i.edosAFN:
+            if j.edoFinal == False:
+                j.identificador = contador2 - 1
+                j.edoFinal = False
+                j.edoInicial = False
+                j.token = 0
+                noms.insert(contador3, j)
                 contador3 += 1
                 contador2 += 1
             else:
-                val.identificador = contador2 - 1
-                val.edoFinal = False
-                val.edoInicial = False
-                val.token = 0
+                j.identificador = contador2 - 1
+                j.edoFinal = False
+                j.edoInicial = False
+                j.token = 0
                 transicion1 = Transicion(" ", x1)
-                val.transiciones = transicion1
-
-                noms.insert(contador3, val)
+                j.transiciones = transicion1
+                noms.insert(contador3, j)
                 contador3 += 1
                 contador2 += 1
 
@@ -284,22 +241,26 @@ def Unir(id1, id2, conjunto):
         er = "(" + af1.ER + ")" + " | " + "(" + af2.ER + ")"
 
     ''' Añadiendo el nuevo AFN a "conjunto.con" '''
-    conjunto.con.insert(contador - 1, AFN(x, symbol, noms, x1, contador, er))
+    conjunto.con.insert(contador - 1, AFN(x, symbol, noms, {x1}, contador, er))
 
 def CerrKleene (id1, conjunto):
     '''Función que transforma el AFN a la operación Cerradura de Kleene'''
-    af1 = CerrTransitiva (id1, conjunto)
+    af1 = operacionTransitiva (id1, conjunto)
     if af1 == -1:
         return -1
 
     for i in af1.F:
         af1.S.addTransicion (Transicion (" ", i))
 
-def CerrTransitiva (id1, conjunto):
+    # Cambiando la expresion regular
+    ex = "(" + str(af1.ER) + ")*"
+    af1.ER = ex
+
+def operacionTransitiva(id1, conjunto):
     '''Función que transforma el AFN a la operación Cerradura Transitiva'''
     af1 = None
-    for i in conjunto.con:                  #Buscar y obtener los
-        if i.idAFN == id1:                  #AFN solicitados
+    for i in conjunto.con:  # Buscar y obtener los
+        if i.idAFN == id1:  # AFN solicitados
             af1 = i
             break
 
@@ -308,35 +269,50 @@ def CerrTransitiva (id1, conjunto):
 
     global conteoDeEdos
 
-    #Creación de los estados requeridos para la cerradura Transitiva
-    x = Estado(conteoDeEdos, set(), True, False, 10)
-    x1 = Estado(conteoDeEdos + 1, set(), False, True, 20)
+    # Creación de los estados requeridos para la cerradura Transitiva
+    x = Estado(af1.S.identificador, set(), True, False, 10)
+    x1 = Estado(conteoDeEdos + 1, None, False, True, 20)
 
     conteoDeEdos += 2
 
     # Creada la transición épsilon para x
     y = Transicion(" ", af1.S)
-    x.addTransicion (y)
+    x.addTransicion(y)
 
-    #Añadir la transición épsilon hacia x1 a los estados
-    #finales, y de regreso al estado inicial
+    # Añadir la transición épsilon hacia x1 a los estados
+    # finales, y de regreso al estado inicial
     for i in af1.F:
         if i.transiciones == None:
             i.transiciones = {y}
         else:
-            i.addTransicion (y)
+            i.addTransicion(y)
 
-        i.addTransicion (Transicion (" ", x1))
+        i.addTransicion(Transicion(" ", x1))
         i.edoFinal = False
 
-    #Finalmente, adición de los nuevos estados al AFN,
-    #y modificación del estado inicial y final
+    # Aumentando el id de todos los estados para añadir el inicial
+    for i in af1.edosAFN:
+        if i.edoFinal == False:
+            i.identificador = i.identificador + 1
+
+    # Finalmente, adición de los nuevos estados al AFN,
+    # y modificación del estado inicial y final
     af1.F = {x1}
-    af1.edosAFN.add (x)
-    af1.edosAFN.add (x1)
+    af1.edosAFN.add(x)
+    af1.edosAFN.add(x1)
     af1.S = x
 
     return af1
+
+def CerrTransitiva (id1, conjunto):
+    '''Función que transforma el AFN a la operación Cerradura de Kleene'''
+    af1 = operacionTransitiva(id1, conjunto)
+    if af1 == -1:
+        return -1
+
+    #Cambiando la expresion regular
+    ex = "(" + str(af1.ER) + ")+"
+    af1.ER = ex
 
 def Concatenar(id1, id2, conjunto):
     '''Función que realiza la operación concatenar con dos AFNs
@@ -355,15 +331,25 @@ def Concatenar(id1, id2, conjunto):
     aux=[]                                  #Para ver qué estados deberemos de quitar
 
     for i in af1.edosAFN:                           #Por cada estado del autómata 1,
-            for j in i.transiciones:                    #por cada transición del estado,
-                if j.edoDestino in af1.F:               #si encontramos un estado final
-                    aux.append (j.edoDestino)
-                    af1.F.remove (j.edoDestino)         #lo eliminamos de la lista y lo reemplazamos
-                    j.edoDestino = af2.S                #por la id inicial del AFN2
+        if i.transiciones != None:
+            try:
+                for j in i.transiciones:                    #por cada transición del estado,
+                    if j.edoDestino in af1.F:               #si encontramos un estado final
+                        aux.append (j.edoDestino)
+                        af1.F.remove (j.edoDestino)         #lo eliminamos de la lista y lo reemplazamos
+                        j.edoDestino = af2.S                #por la id inicial del AFN2
+            except:
+                if i.transiciones.edoDestino in af1.F:  # si encontramos un estado final
+                    aux.append(i.transiciones.edoDestino)
+                    af1.F.remove(i.transiciones.edoDestino)  # lo eliminamos de la lista y lo reemplazamos
+                    i.transiciones.edoDestino = af2.S  # por la id inicial del AFN2
 
     '''Eliminamos los estados finales de AF1 de su conjunto de estados'''
     for i in aux:
         af1.edosAFN.remove (i)
+
+    for i in af2.edosAFN:
+        i.edoInicial = False
 
     '''Juntamos el set de estados de AF2 con el de AF1,
     y eliminamos AF2 de la lista de AFN'''
@@ -371,9 +357,26 @@ def Concatenar(id1, id2, conjunto):
     af1.F = af2.F
     conjunto.con.remove (af2)
 
+    '''Ajustando los id de los edos'''
+    for i in af1.edosAFN:
+        if i.edoInicial == False:
+            i.identificador = i.identificador - 1
+
     '''Aquí unimos los dos alfabetos y eliminamos los caracteres repetidos'''
-    af1.E = af1.E + af2.E
-    af1.E = "".join (set (af1.E))
+    symbol = af1.E
+    flag = 0
+    for i in range(0, len(af2.E)):
+        for j in range(0, len(symbol)):
+            if (af2.E[i] == symbol[j]):
+                flag = 1
+        if flag == 0:
+            symbol += ", " + af2.E[i]
+        flag = 0
+    af1.E = symbol
+
+    # Cambiando la expresion regular
+    ex = "(" + str(af1.ER) + ")•(" + str(af2.ER) + ")"
+    af1.ER = ex
 
 def Opcional (id1, conjunto):
     '''Función que transforma el AFN a la operación Opcional'''
@@ -389,15 +392,15 @@ def Opcional (id1, conjunto):
     global conteoDeEdos
 
     #Creación de los estados requeridos para la cerradura Transitiva
-    x = Estado(conteoDeEdos, set(), True, False, 10)
-    x1 = Estado(conteoDeEdos + 1, set(), False, True, 20)
+    x = Estado(af1.S.identificador, set(), True, False, 10)
+    x1 = Estado(conteoDeEdos + 1, None, False, True, 20)
 
     conteoDeEdos += 2
 
     #Creada la transición epsilon para x
-    x.addTransicion (Transicion (" ", af1.S))
-    x.addTransicion (Transicion (" ", x1))
-    y = Transicion (" ", x1)
+    x.addTransicion(Transicion(" ", af1.S))
+    x.addTransicion(Transicion(" ", x1))
+    y = Transicion(" ", x1)
 
     #Añadir la transición épsilon hacia x1 a los estados
     #finales, y de regreso al estado inicial
@@ -408,12 +411,21 @@ def Opcional (id1, conjunto):
             i.addTransicion (y)
         i.edoFinal = False
 
-    #Finalmente, adición de los nuevos estados al AFN,
-    #y modificación del estado inicial y final
+    #Aumentando el id de todos los estados para añadir el inicial
+    for i in af1.edosAFN:
+        if i.edoFinal == False:
+            i.identificador = i.identificador + 1
+
+    # Finalmente, adición de los nuevos estados al AFN,
+    # y modificación del estado inicial y final
     af1.F = {x1}
-    af1.edosAFN.add (x)
-    af1.edosAFN.add (x1)
+    af1.edosAFN.add(x)
+    af1.edosAFN.add(x1)
     af1.S = x
+
+    # Cambiando la expresion regular
+    ex = "(" + str(af1.ER) + ")?"
+    af1.ER = ex
 
 def prepararAnalisis(conjunto):
     if len(conjunto.con) <= 1:
@@ -424,14 +436,11 @@ def prepararAnalisis(conjunto):
         transicion1 = []
 
         ''' Añadiendo el estado inicial "x" de la operación unión '''
-        final2 = copy.deepcopy(conjunto.con)
-        while (len(final2) >= 1):
-            af1 = final2.pop()
-            while (len(af1.edosAFN) >= 1):
-                val = af1.edosAFN.pop()
-                val.identificador = val.identificador + 1
-                if val.edoInicial == True:
-                    transicion1 += [Transicion(" ", val)]
+        for i in conjunto.con:
+            for j in i.edosAFN:
+                j.identificador = j.identificador + 1
+                if j.edoInicial == True:
+                    transicion1 += [Transicion(" ", j)]
 
         x = Estado(0, transicion1, True, False, 0)
         ''' Creando AFN "noms" que será la unión de af1 y af2, con estado inicial "x" '''
@@ -441,42 +450,38 @@ def prepararAnalisis(conjunto):
         contador += 1
         contador3 = 1
 
-        final = conjunto.con
-        final.reverse()
-
         ''' Sacando cada estado de los afn para modificarlos, cambiando sus transiciones '''
         symbol = ""
         er = ""
-        while(len(final) >= 1):
-            af1 = final.pop()
 
+        for i in conjunto.con:
             ''' Definiendo el alfabeto de noms '''
             flag = 0
-            for i in range(0, len(af1.E)):
-                for j in range(0, len(symbol)):
-                    if (af1.E[i] == symbol[j]):
+            for j in range(0, len(i.E)):
+                for k in range(0, len(symbol)):
+                    if (i.E[j] == symbol[k]):
                         flag = 1
                 if flag == 0 and contador != 2:
-                    symbol += ", " + af1.E[i]
+                    symbol += ", " + i.E[j]
                 elif flag == 0:
-                    symbol += af1.E[i]
+                    symbol += i.E[j]
 
-            while (len(af1.edosAFN) >= 1):
-                val = af1.edosAFN.pop()
-                val.identificador = val.identificador + 1
-                if val.edoFinal == False:
-                    val.edoInicial = False
+            for j in i.edosAFN:
+                if j.edoFinal == False:
+                    j.edoInicial = False
                 else:
-                    auxFinal.insert(contador3, val)
+                    auxFinal.insert(contador3, j)
                     contador3 += 1
-                noms.insert(contador, val)
+                noms.insert(contador, j)
                 contador += 1
 
             ''' Definiendo la expresión regular del afn final '''
             if er != "":
-                er += " | " + "(" + af1.ER + ")"
+                er += " | " + "(" + i.ER + ")"
             else:
-                er = "(" + af1.ER + ")"
+                er = "(" + i.ER + ")"
+
+        conjunto.con.clear()
 
         ''' Añadiendo el nuevo AFN a "conjunto.con" '''
         conjunto.con.insert(contador - 1, AFN(x, symbol, noms, auxFinal, 1, er))
@@ -498,9 +503,12 @@ while True:
         TablaGeneral(conjunto, numCrear)
 
     elif opcionMenu == "2":
-        print("\nPara mostrar la tabla de un AFN, escribe el id del AFN:")
-        num = int(input(""))
-        TablaAFN(num, conjunto, numCrear)
+        try:
+            print("\nPara mostrar la tabla de un AFN, escribe el id del AFN:")
+            num = int(input(""))
+            TablaAFN(num, conjunto, numCrear)
+        except:
+            #print("No se encontró la ID de dicho autómata\n")
 
     elif opcionMenu == "3":
         print("\nPara crear el AFN, escribe el carácter al cual crearle el AFN:")
@@ -511,29 +519,33 @@ while True:
         numAFNCreados += 1
 
     elif opcionMenu == "4":
-        print("\nIngresa el id del primer AFN a unir:")
-        id1 = int(input(""))
-        print("\nIngresa el id del segundo AFN a unir:")
-        id2 = int(input(""))
-        Unir(id1, id2, conjunto)
-        numCrear -= 1
-        numAFNCreados -= 1
-        conteoDeEdos += 2
-        print("uniendo AFN...")
-        time.sleep(1)
-        print("¡Nuevo AFN creado con éxito!\n")
+        try:
+            print("\nIngresa el id del primer AFN a unir:")
+            id1 = int(input(""))
+            print("\nIngresa el id del segundo AFN a unir:")
+            id2 = int(input(""))
+            Unir(id1, id2, conjunto)
+            numCrear -= 1
+            numAFNCreados -= 1
+            conteoDeEdos += 2
+            print("uniendo AFN...")
+            time.sleep(1)
+            print("¡Nuevo AFN creado con éxito!\n")
+        except:
+            print("No se encontró la ID de dichos autómatas\n")
 
     elif opcionMenu == "5":
-        print("\nIngresa el id del primer AFN a concatenar:")
-        id1 = int(input(""))
-        print("\nIngresa el id del segundo AFN a concatenar:")
-        id2 = int(input(""))
-        a = Concatenar(id1, id2, conjunto)
-
-        if a == -1:
-            print("No se encontró la ID de algún autómata\n")
-        else:
+        try:
+            print("\nIngresa el id del primer AFN a concatenar:")
+            id1 = int(input(""))
+            print("\nIngresa el id del segundo AFN a concatenar:")
+            id2 = int(input(""))
+            a = Concatenar(id1, id2, conjunto)
+            print("concatenando AFN...")
+            time.sleep(1)
             print("¡Nuevo AFN creado con éxito!\n")
+        except:
+            print("No se encontró la ID de dichos autómatas\n")
 
     elif opcionMenu == "6":
         print("\nIngresa el id del AFN al cual obtener la cerradura transitiva:")
@@ -543,16 +555,20 @@ while True:
         if a == -1:
             print("No se encontró el AFN\n")
         else:
+            print("obteniendo cerradura transitiva...")
+            time.sleep(1)
             print("¡Nuevo AFN creado con éxito!\n")
 
     elif opcionMenu == "7":
         print("\nIngresa el id del AFN al cual obtener la cerradura de kleene:")
         id1 = int(input(""))
         a = CerrKleene(id1, conjunto)
-        
+
         if a == -1:
             print("No se encontró el AFN\n")
         else:
+            print("obteniendo cerradura de kleene...")
+            time.sleep(1)
             print("¡Nuevo AFN creado con éxito!\n")
 
     elif opcionMenu == "8":
@@ -563,6 +579,8 @@ while True:
         if a == -1:
             print("No se encontró el AFN\n")
         else:
+            print("obteniendo operación opcional...")
+            time.sleep(1)
             print("¡Nuevo AFN creado con éxito!\n")
 
     elif opcionMenu == "9":
