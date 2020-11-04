@@ -290,7 +290,7 @@ def CerrKleene (id1, conjunto):
     '''Función que transforma el AFN a la operación Cerradura de Kleene'''
     af1 = CerrTransitiva (id1, conjunto)
     for i in af1.F:
-        af1.S.addTransicion (Transicion ("\u03C3", i))
+        af1.S.addTransicion (Transicion (" ", i))
 
 def CerrTransitiva (id1, conjunto):
     '''Función que transforma el AFN a la operación Cerradura Transitiva'''
@@ -308,15 +308,15 @@ def CerrTransitiva (id1, conjunto):
 
     numCrear += 2
 
-    #Creada la transición epsilon para x
-    y = Transicion ("\u03C3", af1.S)
+    # Creada la transición épsilon para x
+    y = Transicion(" ", af1.S)
     x.addTransicion (y)
 
     #Añadir la transición épsilon hacia x1 a los estados
     #finales, y de regreso al estado inicial
     for i in af1.F:
         i.addTransicion (y)
-        i.addTransicion (Transicion ("\u03C3", x1))
+        i.addTransicion (Transicion ("", x1))
         i.edoFinal = False
 
     #Finalmente, adición de los nuevos estados al AFN,
@@ -361,6 +361,39 @@ def Concatenar(id1, id2, conjunto):
     '''Aquí unimos los dos alfabetos y eliminamos los caracteres repetidos'''
     af1.E = af1.E + af2.E
     af1.E = "".join (set (af1.E))
+
+def Opcional (id1, conjunto):
+    '''Función que transforma el AFN a la operación Opcional'''
+    af1 = AFN
+    for i in conjunto.con:                  #Buscar y obtener los
+        if i.idAFN == id1:                  #AFN solicitados
+            af1 = i
+            break
+
+    global numCrear
+
+    #Creación de los estados requeridos para la cerradura Transitiva
+    x = Estado(numCrear, set(), True, False, 10)
+    x1 = Estado(numCrear + 1, set(), False, True, 20)
+
+    numCrear += 2
+
+    #Creada la transición epsilon para x
+    x.addTransicion (Transicion ("", af1.S))
+    x.addTransicion (Transicion ("", x1))
+
+    #Añadir la transición épsilon hacia x1 a los estados
+    #finales, y de regreso al estado inicial
+    for i in af1.F:
+        i.addTransicion (Transicion ("", x1))
+        i.edoFinal = False
+
+    #Finalmente, adición de los nuevos estados al AFN,
+    #y modificación del estado inicial y final
+    af1.F = {x1}
+    af1.edosAFN.add (x)
+    af1.edosAFN.add (x1)
+    af1.S = x
 
 def prepararAnalisis(conjunto):
     if len(conjunto.con) <= 1:
@@ -492,7 +525,10 @@ while True:
 
     elif opcionMenu == "8":
         print("\nIngresa el id del AFN al cual obtener la operación opcional:")
+        id1 = int(input(""))
+        Opcional(id1, conjunto)
         print("¡Nuevo AFN creado con éxito!\n")
+
     elif opcionMenu == "9":
         print("\nTodos los AFN del sistema se van a unir, ¿Deseas continuar? (S/N)")
         resp = str(input(""))[0]
