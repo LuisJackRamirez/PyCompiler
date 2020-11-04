@@ -23,18 +23,21 @@ def menu():
     print("\t9 - Unión de los AFN para el análisis léxico")
     print("\t10 - Convertir un AFN a un AFD")
     print("\t11 - Hacer una prueba con una cadena en un AF")
-    print("\t12 - salir")
+    print("\t12 - tablas AFD (tabla 1: AFD, tabla2: Transiciones de los estados del AFD)")
+    print("\t13 - salir")
 
 def TablaGeneral(conjunto, numCrear):
     ''' Se verifica primero si hay AFN o no '''
     if numCrear == 0:
-        print("\nNo hay AF's por mostrar")
+        print("\nNo hay AFN's por mostrar")
     else:
-        ''' Como no hay AFN, creamos primero variables de apoyo '''
+        ''' Como hay AFN, creamos primero variables de apoyo '''
+        contador = 1
+        ''' Como hay AFN, creamos primero variables de apoyo '''
         tabla = [['Id', 'Alfabeto', 'Estados', 'Estado inicial', 'Estados Finales', 'Expresión regular']]
+
         aux2 = copy.deepcopy(conjunto.con)
 
-        contador = 1
         ''' Ciclo para extraer cada AFN para mostrarlo en la tabla '''
         for i in aux2:
             ''' extraer id del estado inicial para la tabla '''
@@ -75,10 +78,8 @@ def TablaGeneral(conjunto, numCrear):
 def TablaAFN(id, conjunto, numCrear):
     ''' Se verifica primero si hay AFN o no '''
     if numCrear == 0:
-        print("\nNo hay AF's por mostrar")
+        print("\nNo hay AFN's por mostrar")
     else:
-        ''' Como no hay AFN, creamos primero variables de apoyo '''
-        tabla = [['Id del Estado', 'Transiciones (símbolo,edoDestino)', '¿Es estado inicial?', '¿Es estado Final?', 'Token']]
         aux3 = copy.deepcopy(conjunto.con)
 
         for i in aux3:
@@ -86,6 +87,8 @@ def TablaAFN(id, conjunto, numCrear):
                 afn = i
 
         contador2 = 1
+        ''' Como hay AFN, creamos primero variables de apoyo '''
+        tabla = [['Id del Estado', 'Transiciones (símbolo,edoDestino)', '¿Es estado inicial?', '¿Es estado Final?', 'Token']]
 
         for i in afn.edosAFN:
             if i.edoInicial == True:
@@ -176,7 +179,7 @@ def Unir(id1, id2, conjunto):
             j.identificador = contador2 - 1
             contador2 += 1
         contador += 1
-        
+
     contador3 = 1
     ''' Añadiendo el estado inicial "x" de la operación unión '''
     transicion1 = [Transicion(" ", af1.S), Transicion(" ", af2.S)]
@@ -489,9 +492,115 @@ def prepararAnalisis(conjunto):
         time.sleep(1)
         print("¡Nuevo AFN creado con éxito!\n")
 
+def TablaGeneralAFD(conjunto, numCrear):
+    ''' Se verifica primero si hay AFD o no '''
+    if numCrear == 0:
+        print("\nNo hay AFD's por mostrar")
+    else:
+        ''' Como hay AFD, creamos primero variables de apoyo '''
+        contador = 1
+        tabla = [['Id', 'Alfabeto', 'Estados', 'Estado inicial', 'Estados Finales', 'Expresión regular']]
+
+        aux2 = copy.deepcopy(conjunto.con)
+
+        contador = 1
+        ''' Ciclo para extraer cada AFD para mostrarlo en la tabla '''
+        for i in aux2:
+            ''' extraer id del estado inicial para la tabla '''
+            Sfinal = str(i.S.identificador)
+            todos = ""
+            edosFinales = ""
+            numTodos = []
+            numFinales = []
+
+            ''' Ciclo para saber cuales estados del AFD son finales,
+                así como para saber cuántos hay '''
+            for j in i.edosAFN:
+                numTodos.append(j.identificador)
+                if j.edoFinal == True:
+                    numFinales.append(j.identificador)
+
+            ''' Regresando estados al AFD "aux", así como ordenar los id's para la tabla '''
+            numTodos = sorted(numTodos)
+            numFinales = sorted(numFinales)
+
+            ''' obteniendo los id's de todos los estados '''
+            for j in range(0, len(numTodos) - 1):
+                todos += str(numTodos[j]) + ", "
+            todos += str(numTodos[len(numTodos) - 1])
+
+            ''' obteniendo los id's de todos los estados finales '''
+            for j in range(0, len(numFinales) - 1):
+                edosFinales += str(numFinales[j]) + ", "
+            edosFinales += str(numFinales[len(numFinales) - 1])
+
+            ''' Imprimiendo tabla '''
+            afs = [str(i.idAFN), repr(i.E), todos, Sfinal, edosFinales, str(i.ER)]
+            tabla.insert(contador, afs)
+            contador += 1
+
+        print(tabulate(tabla, headers='firstrow', stralign='center', tablefmt='fancy_grid'))
+
+def TablaAFD(id, conjunto, numCrear):
+    ''' Se verifica primero si hay AFN o no '''
+    if numCrear == 0:
+        print("\nNo hay AFD's por mostrar")
+    else:
+        aux3 = copy.deepcopy(conjunto.con)
+
+        for i in aux3:
+            if i.idAFN == id:
+                afd = i
+
+        contador2 = 1
+        ''' Como hay AFN, creamos primero variables de apoyo '''
+        tabla = [['Id del Estado', 'Transiciones (símbolo,edoDestino)', '¿Es estado inicial?', '¿Es estado Final?', 'Token']]
+
+        for i in afd.edosAFN:
+            if i.edoInicial == True:
+                var1 = "Verdadero"
+            else:
+                var1 = "Falso"
+            if i.edoFinal == True:
+                var2 = "Verdadero"
+            else:
+                var2 = "Falso"
+
+            ''' Imprimiendo tabla '''
+            try:
+                cad = ""
+                contador = 1
+                for j in i.transiciones:
+                    if contador != 1:
+                        cad += ","
+                    if j.simbolo == None:
+                        afs = [str(i.identificador), "No hay transiciones", var1, var2, i.token]
+                    else:
+                        cad2 = str(j.simbolo)
+                        aux3 = j.edoDestino
+                        cad += "(" + cad2 + "," + str(aux3.identificador) + ")"
+                    contador += 1
+                afs = [str(i.identificador), cad, var1, var2, i.token]
+            except:
+                aux = i.transiciones
+                if aux == None:
+                    afs = [str(i.identificador), "No hay transiciones", var1, var2, i.token]
+                else:
+                    cad2 = str(aux.simbolo)
+                    aux2 = aux.edoDestino
+                    cad = "(" + cad2 + "," + str(aux2.identificador) + ")"
+                    afs = [str(i.identificador), cad, var1, var2, i.token]
+
+            tabla.insert(contador2, afs)
+            contador2 += 1
+
+        print(tabulate(tabla, headers='firstrow', stralign='center', tablefmt='fancy_grid'))
+
 conjunto = conjuntoAFN
+conjunto2 = conjuntoAFN
 numAFNCreados = 1
 numCrear = 0
+numCrear2 = 0
 conteoDeEdos = 0
 print("\n¡Hola!, Bienvenido al programa de análisis léxico")
 
@@ -508,7 +617,7 @@ while True:
             num = int(input(""))
             TablaAFN(num, conjunto, numCrear)
         except:
-            #print("No se encontró la ID de dicho autómata\n")
+            print("No se encontró la ID de dicho autómata\n")
 
     elif opcionMenu == "3":
         print("\nPara crear el AFN, escribe el carácter al cual crearle el AFN:")
@@ -595,11 +704,24 @@ while True:
             time.sleep(1)
     elif opcionMenu == "10":
         print("\nIngresa el id del AFN a convertir a un AFD:")
+        #
+        # Tienes que usar la variable conjunto2 para almacenar los AFD
+        #
+        numCrear2 += 1
         print("¡Nuevo AFD creado con éxito!\n")
     elif opcionMenu == "11":
         print("\nIngresa el id del AF a introducir una cadena:")
         print("¡Prueba concluida con éxito!\n")
     elif opcionMenu == "12":
+        TablaGeneralAFD(conjunto2, numCrear2)
+        if numCrear2 != 0:
+            try:
+                print("\nPara mostrar la tabla de un AFD, escribe el id del AFD:")
+                num = int(input(""))
+                TablaAFD(num, conjunto2, numCrear2)
+            except:
+                print("No se encontró la ID de dicho autómata\n")
+    elif opcionMenu == "13":
         break
     else:
         print("\nNo es una opción válida\npulsa una tecla para continuar...")
