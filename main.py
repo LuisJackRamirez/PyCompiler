@@ -12,7 +12,7 @@ def menu():
     """
     Función que limpia la pantalla y muestra nuevamente el menu
     """
-    time.sleep(2)
+    #time.sleep(2)
     print("¿Qué operación debo realizar?")
     print("\t1 - mostrar tabla de AFN's")
     print("\t2 - mostrar tabla de las transiciones de un AFN")
@@ -52,9 +52,24 @@ def TablaGeneral(conjunto, numCrear):
             ''' Ciclo para saber cuales estados del AFN son finales,
                 así como para saber cuántos hay '''
             for j in i.edosAFN:
-                numTodos.append(j.identificador)
-                if j.edoFinal == True:
-                    numFinales.append(j.identificador)
+
+                '''Added by Luis'''
+                try:
+                    numTodos.append (j.identificador)
+                    if j.edoFinal == True:
+                        numFinales.append(j.identificador)
+                except:
+                    for k in j:
+                        numTodos.append (k.identificador)
+                        if k.edoFinal == True:
+                            numFinales.append (k.identificador)
+                '''Added by Luis'''
+
+                '''Before Luis'''
+                #numTodos.append(j.identificador)
+                '''Before Luis'''
+                #if j.edoFinal == True:
+                    #numFinales.append(j.identificador)
 
             ''' Regresando estados al AFN "aux", así como ordenar los id's para la tabla '''
             numTodos = sorted(numTodos)
@@ -363,14 +378,19 @@ def Concatenar(id1, id2, conjunto):
 
     '''Juntamos el set de estados de AF2 con el de AF1,
     y eliminamos AF2 de la lista de AFN'''
-    af1.edosAFN.update (af2.edosAFN)
+
+    try:
+        af1.edosAFN.update (af2.edosAFN)
+    except:
+        af1.edosAFN.append (af2.edosAFN)
+
     af1.F = af2.F
     conjunto.con.remove (af2)
 
-    '''Ajustando los id de los edos'''
-    for i in af1.edosAFN:
-        if i.edoInicial == False:
-            i.identificador = i.identificador - 1
+    #Ajustando los id de los edos
+  #  for i in af1.edosAFN:
+ #       if i.edoInicial == False:
+#            i.identificador = i.identificador - 1
 
     '''Aquí unimos los dos alfabetos y eliminamos los caracteres repetidos'''
     symbol = af1.E
@@ -774,13 +794,16 @@ while True:
             print("\nIngresa el id del segundo AFN a concatenar:")
             id2 = int(input(""))
             a = Concatenar(id1, id2, conjunto)
-            print("concatenando AFN...")
-            time.sleep(1)
-            print("¡Nuevo AFN creado con éxito!\n")
-            numCrear =- 1
-            numAFNCreados =- 1
+            if a == -1:
+                print("No se encontró la ID de dichos autómatas\n")
+            else:
+                print("concatenando AFN...")
+                time.sleep(1)
+                print("¡Nuevo AFN creado con éxito!\n")
+                numCrear -= 1
+                numAFNCreados -= 1
         except:
-            print("No se encontró la ID de dichos autómatas\n")
+            print("Error en la concatenación de autómatas\n")
 
     elif opcionMenu == "6":
         print("\nIngresa el id del AFN al cual obtener la cerradura transitiva:")
