@@ -26,7 +26,8 @@ def menu():
     print("\t10 - Convertir un AFN a un AFD")
     print("\t11 - Hacer una prueba con una cadena en un AF")
     print("\t12 - tablas AFD (tabla 1: AFD, tabla2: Transiciones de los estados del AFD)")
-    print("\t13 - salir")
+    print("\t13 - Crear AFN a partir de una expresión regular")
+    print("\t14 - salir")
 
 def TablaGeneral(conjunto, numCrear):
     ''' Se verifica primero si hay AFN o no '''
@@ -165,9 +166,6 @@ def Crear(symbol, conjunto, conteoDeEdos, numCrear):
     else:
         ''' "conjunto" no tiene estados, por tanto se añade al principio '''
         conjunto.con = [AFN(x, symbol, {x, x1}, {x1}, 1 + numCrear, symbol)]
-    print("creando AFN...")
-    time.sleep(1)
-    print("¡AFN creado con éxito!\n")
 
 def Unir(id1, id2, conjunto):
     ''' El siguiente ciclo es para vaciar "conjunto.con", sacando cada AFN, para así buscar los 2 AFN a unir,
@@ -252,13 +250,13 @@ def Unir(id1, id2, conjunto):
 
     ''' Definiendo la expresión regular del afn '''
     if len(af1.ER) == 1 and len(af2.ER) == 1:
-        er = af1.ER + " | " + af2.ER
+        er = af1.ER + " or " + af2.ER
     elif len(af1.ER) != 1 and len(af2.ER) == 1:
-        er = "\(" + af1.ER + "\)" + " | " + af2.ER
+        er = "(" + af1.ER + ")" + " or " + af2.ER
     elif len(af1.ER) == 1 and len(af2.ER) != 1:
-        er = af1.ER + " | " + "\(" + af2.ER + "\)"
+        er = af1.ER + " or " + "(" + af2.ER + ")"
     else:
-        er = "\(" + af1.ER + "\)" + " | " + "\(" + af2.ER + "\)"
+        er = "(" + af1.ER + ")" + " or " + "(" + af2.ER + ")"
 
     ''' Añadiendo el nuevo AFN a "conjunto.con" '''
     conjunto.con.insert(contador - 1, AFN(x, symbol, noms, {x1}, contador, er))
@@ -273,7 +271,7 @@ def CerrKleene (id1, conjunto):
         af1.S.addTransicion (Transicion (" ", i))
 
     # Cambiando la expresion regular
-    ex = "\(" + str(af1.ER) + "\)\*"
+    ex = "(" + str(af1.ER) + ")*"
     af1.ER = ex
 
 def operacionTransitiva(id1, conjunto):
@@ -287,11 +285,31 @@ def operacionTransitiva(id1, conjunto):
     if af1 == None:
         return -1
 
+    conjunto.con.remove(af1)
+    contador = 1
+    contador2 = 1
+    for i in conjunto.con:
+        i.idAFN = contador
+        for j in i.edosAFN:
+            j.identificador = contador2 - 1
+            contador2 += 1
+        contador += 1
+
+    af1.idAFN = contador
+    for i in af1.edosAFN:
+        i.identificador = contador2 - 1
+        contador2 += 1
+
     global conteoDeEdos
+
+    contador = 0
+    for i in af1.edosAFN:
+        if i.edoFinal == True and i.identificador > contador:
+            contador = i.identificador
 
     # Creación de los estados requeridos para la cerradura Transitiva
     x = Estado(af1.S.identificador, set(), True, False, 10)
-    x1 = Estado(conteoDeEdos + 1, None, False, True, 20)
+    x1 = Estado(contador+2, None, False, True, 20)
 
     conteoDeEdos += 2
 
@@ -327,6 +345,11 @@ def operacionTransitiva(id1, conjunto):
         af1.edosAFN.insert(len(af1.edosAFN), x1)
     af1.S = x
 
+    try:
+        conjunto.con.add(af1)
+    except:
+        conjunto.con.insert(len(conjunto.con), af1)
+
     return af1
 
 def CerrTransitiva (id1, conjunto):
@@ -336,10 +359,10 @@ def CerrTransitiva (id1, conjunto):
         return -1
 
     #Cambiando la expresion regular
-    ex = "\(" + str(af1.ER) + "\)\+"
+    ex = "(" + str(af1.ER) + ")+"
     af1.ER = ex
 
-def Concatenar(id1, id2, conjunto):
+def Concatenar(id1, id2, conjunto, conteoEdos):
     '''Función que realiza la operación concatenar con dos AFNs
        Recibe los ids de los AFN, el conjunto de AFN, y el contador de AFN creados'''
     af1 = -1
@@ -353,6 +376,27 @@ def Concatenar(id1, id2, conjunto):
     if af1 == -1 or af2 == -1:
         return -1
 
+    conjunto.con.remove(af1)
+    conjunto.con.remove(af2)
+    contador = 1
+    contador2 = 1
+    for i in conjunto.con:
+        i.idAFN = contador
+        for j in i.edosAFN:
+            j.identificador = contador2 - 1
+            contador2 += 1
+        contador += 1
+
+    af1.idAFN = contador
+    for i in af1.edosAFN:
+        i.identificador = contador2 - 1
+        contador2 += 1
+
+    contador2 -= 1
+    for i in af2.edosAFN:
+        i.identificador = contador2 - 1
+        contador2 += 1
+
     aux=[]                                  #Para ver qué estados deberemos de quitar
 
     for i in af1.edosAFN:                           #Por cada estado del autómata 1,
@@ -363,11 +407,13 @@ def Concatenar(id1, id2, conjunto):
                         aux.append (j.edoDestino)
                         af1.F.remove (j.edoDestino)         #lo eliminamos de la lista y lo reemplazamos
                         j.edoDestino = af2.S                #por la id inicial del AFN2
+                        conteoEdos -= 1
             except:
                 if i.transiciones.edoDestino in af1.F:  # si encontramos un estado final
                     aux.append(i.transiciones.edoDestino)
                     af1.F.remove(i.transiciones.edoDestino)  # lo eliminamos de la lista y lo reemplazamos
                     i.transiciones.edoDestino = af2.S  # por la id inicial del AFN2
+                    conteoEdos -= 1
 
     '''Eliminamos los estados finales de AF1 de su conjunto de estados'''
     for i in aux:
@@ -385,12 +431,6 @@ def Concatenar(id1, id2, conjunto):
         af1.edosAFN.append (af2.edosAFN)
 
     af1.F = af2.F
-    conjunto.con.remove (af2)
-
-    #Ajustando los id de los edos
-  #  for i in af1.edosAFN:
- #       if i.edoInicial == False:
-#            i.identificador = i.identificador - 1
 
     '''Aquí unimos los dos alfabetos y eliminamos los caracteres repetidos'''
     symbol = af1.E
@@ -405,8 +445,15 @@ def Concatenar(id1, id2, conjunto):
     af1.E = symbol
 
     # Cambiando la expresion regular
-    ex = "\(" + str(af1.ER) + "\)•\(" + str(af2.ER) + "\)"
+    ex = "(" + str(af1.ER) + ")&(" + str(af2.ER) + ")"
     af1.ER = ex
+
+    try:
+        conjunto.con.add(af1)
+    except:
+        conjunto.con.insert(len(conjunto.con), af1)
+
+    return conteoDeEdos
 
 def Opcional (id1, conjunto):
     '''Función que transforma el AFN a la operación Opcional'''
@@ -419,10 +466,26 @@ def Opcional (id1, conjunto):
     if af1 == None:
         return -1
 
+    conjunto.con.remove(af1)
+    contador = 1
+    contador2 = 1
+    for i in conjunto.con:
+        i.idAFN = contador
+        for j in i.edosAFN:
+            j.identificador = contador2 - 1
+            contador2 += 1
+        contador += 1
+
+    af1.idAFN = contador
+    var = contador2 - 1
+    for i in af1.edosAFN:
+        i.identificador = contador2 - 1
+        contador2 += 1
+
     global conteoDeEdos
 
     #Creación de los estados requeridos para la cerradura Transitiva
-    x = Estado(af1.S.identificador, set(), True, False, 10)
+    x = Estado(var, set(), True, False, 10)
     x1 = Estado(conteoDeEdos + 1, None, False, True, 20)
 
     conteoDeEdos += 2
@@ -459,8 +522,13 @@ def Opcional (id1, conjunto):
     af1.S = x
 
     # Cambiando la expresion regular
-    ex = "\(" + str(af1.ER) + "\)?"
+    ex = "(" + str(af1.ER) + ")?"
     af1.ER = ex
+
+    try:
+        conjunto.con.add(af1)
+    except:
+        conjunto.con.insert(len(conjunto.con), af1)
 
 def prepararAnalisis(conjunto):
     if len(conjunto.con) <= 1:
@@ -512,9 +580,9 @@ def prepararAnalisis(conjunto):
 
             ''' Definiendo la expresión regular del afn final '''
             if er != "":
-                er += " | " + "\(" + i.ER + "\)"
+                er += " or " + "(" + i.ER + ")"
             else:
-                er = "\(" + i.ER + "\)"
+                er = "(" + i.ER + ")"
 
         conjunto.con.clear()
 
@@ -735,6 +803,122 @@ def comprobar_AFN(idA, conjunto, cadena):
     except:
         print("cadeno aceptada")
 
+def CrearEr(er, conj, conteoDeEdos, num):
+    conjunto = conjuntoAFN
+    numCrear = copy.deepcopy(num)
+    er = er.replace(" ","")
+    flag = 0
+    i = 0
+
+    while (i < len(er)):
+        if er[i] == '(':
+            j = 0
+            while (er[i + j + 1] != ')'):
+                aux = er[i + j + 1]
+                j = j+1
+            flag = 1
+            i = i + j + 2
+
+        if flag == 1:
+            for j in range(0, len(aux)):
+                if aux[j] == 'o' and aux[j + 1] == 'r':
+                    af = copy.deepcopy(conjunto.con)
+                    af = af.pop()
+
+                    j += 2
+                    Crear(aux[j], conjunto, conteoDeEdos, numCrear)
+                    conteoDeEdos += 2
+                    numCrear += 1
+
+                    Unir(af.idAFN, af.idAFN + 1, conjunto)
+                    numCrear -= 1
+                    conteoDeEdos += 2
+                elif aux[j] == '&':
+                    af = copy.deepcopy(conjunto.con)
+                    af = af.pop()
+
+                    j += 1
+                    Crear(aux[j], conjunto, conteoDeEdos, numCrear)
+                    conteoDeEdos += 2
+                    numCrear += 1
+
+                    conteoDeEdos = Concatenar(af.idAFN, af.idAFN + 1, conjunto, conteoDeEdos)
+                    numCrear -= 1
+                elif aux[j] == '+':
+                    af = copy.deepcopy(conjunto.con)
+                    af = af.pop()
+
+                    CerrTransitiva(af.idAFN, conjunto)
+                    conteoDeEdos += 2
+                elif aux[j] == '*':
+                    af = copy.deepcopy(conjunto.con)
+                    af = af.pop()
+
+                    CerrKleene(af.idAFN, conjunto)
+                    conteoDeEdos += 2
+                elif aux[j] == '?':
+                    af = copy.deepcopy(conjunto.con)
+                    af = af.pop()
+
+                    Opcional(af.idAFN, conjunto)
+                    conteoDeEdos += 2
+                else:
+                    Crear(aux[j], conjunto, conteoDeEdos, numCrear)
+                    conteoDeEdos += 2
+                    numCrear += 1
+
+        if er[i] == 'o' and er[i + 1] == 'r':
+            af = copy.deepcopy(conjunto.con)
+            af = af.pop()
+
+            i += 2
+            Crear(er[i], conjunto, conteoDeEdos, numCrear)
+            conteoDeEdos += 2
+            numCrear += 1
+
+            Unir(af.idAFN, af.idAFN + 1, conjunto)
+            numCrear -= 1
+            conteoDeEdos += 2
+        elif er[i] == '&':
+            af = copy.deepcopy(conjunto.con)
+            af = af.pop()
+
+            i += 1
+            Crear(er[i], conjunto, conteoDeEdos, numCrear)
+            conteoDeEdos += 2
+            numCrear += 1
+
+            conteoDeEdos = Concatenar(af.idAFN, af.idAFN + 1, conjunto, conteoDeEdos)
+            numCrear -= 1
+        elif er[i] == '+':
+            af = copy.deepcopy(conjunto.con)
+            af = af.pop()
+
+            CerrTransitiva(af.idAFN, conjunto)
+            conteoDeEdos += 2
+        elif er[i] == '*':
+            af = copy.deepcopy(conjunto.con)
+            af = af.pop()
+
+            CerrKleene(af.idAFN, conjunto)
+            conteoDeEdos += 2
+        elif er[i] == '?':
+            af = copy.deepcopy(conjunto.con)
+            af = af.pop()
+
+            Opcional(af.idAFN, conjunto)
+            conteoDeEdos += 2
+        else:
+            Crear(er[i], conjunto, conteoDeEdos, numCrear)
+            conteoDeEdos += 2
+            numCrear += 1
+
+        i = i+1
+
+    conj.con.insert(num, conjunto.con.pop())
+
+    return conteoDeEdos
+
 afn_convertidos = []
 diccionarioauxiliar ={}
 afd_api={}
@@ -742,7 +926,6 @@ afn_api={}
 dictrans = {}
 conjunto = conjuntoAFN
 conjunto2 = conjuntoAFN
-numAFNCreados = 1
 numCrear = 0
 numCrear2 = 0
 conteoDeEdos = 0
@@ -754,12 +937,14 @@ while True:
 
     if opcionMenu == "1":
         TablaGeneral(conjunto, numCrear)
+        time.sleep(1)
 
     elif opcionMenu == "2":
         try:
             print("\nPara mostrar la tabla de un AFN, escribe el id del AFN:")
             num = int(input(""))
             TablaAFN(num, conjunto, numCrear)
+            time.sleep(1)
         except:
             print("No se encontró la ID de dicho autómata\n")
 
@@ -769,7 +954,9 @@ while True:
         Crear(symbol, conjunto, conteoDeEdos, numCrear)
         conteoDeEdos += 2
         numCrear += 1
-        numAFNCreados += 1
+        print("creando AFN...")
+        time.sleep(1)
+        print("¡AFN creado con éxito!\n")
 
     elif opcionMenu == "4":
         try:
@@ -779,7 +966,6 @@ while True:
             id2 = int(input(""))
             Unir(id1, id2, conjunto)
             numCrear -= 1
-            numAFNCreados -= 1
             conteoDeEdos += 2
             print("uniendo AFN...")
             time.sleep(1)
@@ -793,7 +979,7 @@ while True:
             id1 = int(input(""))
             print("\nIngresa el id del segundo AFN a concatenar:")
             id2 = int(input(""))
-            a = Concatenar(id1, id2, conjunto)
+            a = Concatenar(id1, id2, conjunto, conteoDeEdos)
             if a == -1:
                 print("No se encontró la ID de dichos autómatas\n")
             else:
@@ -801,7 +987,7 @@ while True:
                 time.sleep(1)
                 print("¡Nuevo AFN creado con éxito!\n")
                 numCrear -= 1
-                numAFNCreados -= 1
+                conteoDeEdos = a
         except:
             print("Error en la concatenación de autómatas\n")
 
@@ -849,7 +1035,6 @@ while True:
         resp = str(input(""))[0]
         if resp == "S" or resp == "s":
             prepararAnalisis(conjunto)
-            numAFNCreados = 2
             conteoDeEdos += 1
             numCrear = 1
         else:
@@ -883,6 +1068,14 @@ while True:
             except:
                 print("No se encontró la ID de dicho autómata\n")
     elif opcionMenu == "13":
+        print("\nPara crear el AFN, escribe la expresión regular:")
+        er = str(input(""))
+        conteoDeEdos = CrearEr(er, conjunto, conteoDeEdos, numCrear)
+        numCrear += 1
+        print("creando AFN...")
+        time.sleep(1)
+        print("¡AFN creado con éxito!\n")
+    elif opcionMenu == "14":
         break
     else:
         print("\nNo es una opción válida\npulsa una tecla para continuar...")
