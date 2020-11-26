@@ -1,3 +1,5 @@
+import copy
+
 class Estado:
     identificador = int
     transiciones = set ()
@@ -12,5 +14,16 @@ class Estado:
         self.edoFinal = edoFinal
         self.token = token
 
-    def addTransicion (self, T):
-        self.transiciones.add (T)
+    def addTransicion(self, T):
+        if self.transiciones != None:
+            aux = set()
+            try:
+                for i in self.transiciones:
+                    aux.add(i)
+                aux.add(T)
+            except:
+                aux.add(self.transiciones)
+                aux.add(T)
+            self.transiciones = aux
+        else:
+            self.transiciones = T
